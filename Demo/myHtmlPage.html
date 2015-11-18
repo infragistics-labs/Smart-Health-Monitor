@@ -1,0 +1,135 @@
+<html>
+  <head>
+    <meta name="generator"
+    content="HTML Tidy for HTML5 (experimental) for Windows https://github.com/w3c/tidy-html5/tree/c63cc39" />
+	<script type="text/javascript" src="https://code.jquery.com/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.9.1/jquery-ui.min.js"></script>
+	
+	<!-- Ignite UI Required Combined JavaScript Files -->
+    <script src="http://cdn-na.infragistics.com/igniteui/2015.1/latest/js/infragistics.core.js"></script>
+    <script src="http://cdn-na.infragistics.com/igniteui/2015.1/latest/js/infragistics.dv.js"></script>
+
+	
+    <title>Arduino Yun I/O Demo</title>
+      <script type="text/javascript">
+
+    window.onload=Pinstatus;
+	var dataSource = [{"BPM": 0}, {"BPM": 3}, {"BPM": 100}, {"BPM": 20}];	
+    function Pinstatus(){
+		$("#chart").igDataChart({
+                    width: "90%",
+                    height: "500px",
+					title: "BPM over time",
+                    horizontalZoomable: true,
+                    verticalZoomable: true,
+					animateSeriesWhenAxisRangeChanges: true,
+                    windowResponse: "immediate",
+                    dataSource: dataSource,
+                    axes: [{
+                            name: "xAxis",
+                            type: "categoryX",
+                            labelExtent: 30,
+                        }, {
+                            name: "yAxis",
+                            type: "numericY",
+                            labelExtent: 50,
+                        }],
+                    series: [{
+                        name: "series1",
+                        title: "Test Series",
+                        type: "line",
+                        xAxis: "xAxis",
+                        yAxis: "yAxis",
+                        valueMemberPath: "BPM",
+                        showTooltip: true,
+                        isTransitionInEnabled: true,
+                        isHighlightingEnabled: true,
+						transitionDuration: 500
+                    }],
+                  });
+
+        ajaxRequest();
+    }
+	function ajaxRequest() {
+		setTimeout(ajaxRequest, 1000);
+		$.ajax({
+			url: 'http://10.14.1.65/arduino/status/99', 
+			dataType: 'json', 			
+			jsonpCallback: 'updateasyncstatus', 
+			success: function(result){
+				updateasyncstatus(result);
+				console.log("success");
+			},
+			 failure: function(response, opts) {console.log("failure");}
+		})
+		.fail( function(xhr, textStatus, errorThrown) {
+			console.log(xhr.responseText);
+			console.log(textStatus);
+		});		
+	}
+
+	function updateasyncstatus(result) { 
+		var image = "led_off.jpg";
+	    document.getElementById("description").innerHTML = result.Temperature;		
+		document.getElementById("analog0").value = result.Temperature;
+		document.getElementById("puslePin").value = result.BPM;
+		$("#chart").igDataChart("addItem", {"BPM":result.BPM});
+		if(result.BPM > 150){
+			image = "led_on.jpg";
+			document.getElementById("image2").src = image;
+		}
+		else {
+			image = "led_off.jpg";
+			document.getElementById("image2").src = image;
+		}
+	}
+
+	function sendbutton(Pin,action){
+	    document.getElementById("description").innerHTML = "Processing Button Click";
+	    server = "/arduino/digital/" + Pin + "/" + action;
+	    request = new XMLHttpRequest();
+	    request.onreadystatechange = updateasyncbutton;
+	    request.open("GET", server, true);
+	    request.send(null);
+	}   
+	
+    </script>
+
+  </head>
+  <body>
+    <table name="Table" border="1" cellpadding="6">
+      <tr>
+        <th align="center" colspan="6">Health Monitor</th>
+      </tr>
+      <tr>
+        <td align="center">Temperature in C
+        <br />
+        <input type="text" style="text-align: center;" name="analogA0" id="analog0" value="0" /></td>
+      </tr>      
+      <tr>
+        <td align="center"> Heart rate
+        <br />
+        <img src="led_off.jpg" width="50" id="image2" />
+		</br>
+		<input type="text" style="text-align: center;" name="puslePin" id="puslePin" value="0" />
+		</td>		
+      </tr> 	  
+      <tr>
+		<td style="width: 330px;">
+			<!-- Target element for the chart -->
+			<div id="chart"></div>
+		</td>
+	</tr>
+	  
+    </table>
+    <font face="Arial">
+      <br />
+      <br />
+      <br />
+      <br />
+    </font>
+    <p id="description">
+      <font face="Arial">-</font>
+    </p>
+  </body>
+</html>
